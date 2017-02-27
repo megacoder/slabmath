@@ -1,0 +1,27 @@
+#!/bin/awk -f
+BEGIN	{
+	# This format is exactly 80 characters wide.
+	fmt = "%-39s\t%6s %6s %6s %6s %12s\n"
+	printf fmt, "Object Name[objsize]", "numobj", "ob/slb", "pg/slb", "slabs", "Memory"
+	printf fmt, "---------------------------------------", "------", "------", "------", "-----", "------------"
+	PAGESIZE = 4096
+}
+# Remove comments
+{	sub( /#.*$/, "" )	}
+# Skip blank lines
+/^[[:space:]]*$/	{ next }
+NF >= 6	{
+	name         = $1
+	num_objs     = $3 + 0.0
+	objsize      = $4 + 0.0
+	objperslab   = $5 + 0.0
+	pagesperslab = $6 + 0.0
+	slabs = int( (num_objs+objperslab-1) / objperslab)
+	memory = slabs * pagesperslab * PAGESIZE
+	total += memory
+	printf fmt, name "[" objsize "]", num_objs, objperslab, pagesperslab,slabs, memory
+}
+END	{
+	printf fmt, "=======================================", "======", "======", "======", "=====", "============"
+	printf fmt, "", "", "", "", "", total
+}
